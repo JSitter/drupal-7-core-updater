@@ -3,11 +3,17 @@ This script updates your current Drupal 7 installation with the newest release a
 Latest available versions are available [here](https://www.drupal.org/project/drupal).
 
 ## Usage
-`-h` or `--help` Help text with usage and available flags.
+`-h`, `--help` Help text with usage and available flags.
 
-`-d` or `--download` Download from URL. (Work in Progress)
+`-d`, `--download` Download from URL.
 
-`-l` or `--local` Specify local version of zipped Drupal package.
+`-f`, `--file` Specify local version of zipped Drupal package.
+
+`--replace` Replace all existing files. **Warning** This will overwrite many custom files and should be used with great caution.
+
+`-l`,  `--list` Display list of available versions. Provide an argument to limit to last N.
+
+`-i`, `--install=INSTALL_LOCATION` Drupal installation location.
 
 ## MIT License
 
