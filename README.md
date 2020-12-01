@@ -5,7 +5,7 @@ Latest available versions are available [here](https://www.drupal.org/project/dr
 ## Usage
 `-h`, `--help` Help text with usage and available flags.
 
-`-d`, `--download` Download from URL.
+`-d`, `--download` Download Drupal from drupal.org. Automatically downloads latest version or specify different version to install.
 
 `-f`, `--file` Specify local version of zipped Drupal package.
 
