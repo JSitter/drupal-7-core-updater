@@ -204,6 +204,7 @@ if __name__ == "__main__":
         if args:
             if args[0] not in versions:
                 print("Version not available")
+                sys.exit(1)
             else:
                 if versions[args[0]]['security'] == "Insecure":
                     user_choice = input("Version {} is insecure. Proceed anyway? [Y/n]")
