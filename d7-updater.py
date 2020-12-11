@@ -28,7 +28,6 @@ import hashlib
 from optparse import OptionParser
 import os
 import os.path as path
-import requests
 import shutil
 import sys
 import tarfile
@@ -119,9 +118,14 @@ def download_drupal_package(download_url, filename, source_hash=""):
     else:
         print("Package authenticity established")
 
+def get_xml_urllib(url):
+    res = req.urlopen(url)
+    xml = res.read()
+    return ET.fromstring(xml)
+
 def get_drupal_versions(num_of_versions=None):
-    response = requests.get(drupal_server_address)
-    root = ET.fromstring(response.content)
+    root = get_xml_urllib(drupal_server_address)
+
     release_order = []
 
     release_dict = {}
