@@ -143,10 +143,11 @@ def download_drupal_version(download_url, destination):
             else:
                 sys.exit(1)
         else:
-            sys.stdout.write("\rDownload Complete.                                \n")
+            time_completed = time.time() - start_time
+            sys.stdout.write("\rDownload Complete in {:.1f} seconds.                                \n".format(time_completed))
             sys.stdout.flush()
 
-def download_drupal_package(download_url, filename, source_hash=""):
+def handle_drupal_download(download_url, filename, source_hash=""):
     check_dir(temp_dir)
     user_affirmative = {"Y", "y"}
     destination = "{}/{}".format(temp_dir, filename)
@@ -267,7 +268,7 @@ if __name__ == "__main__":
                 sys.exit(1)
             else:
                 if versions[args[0]]['security'] == "Insecure":
-                    user_choice = input("Version {} is insecure. Proceed anyway? [Y/n]")
+                    user_choice = input("Version {} is insecure. Proceed anyway? [Y/n]".format(args[0]))
                     if user_choice != 'Y':
                         print("Aborting Installation")
                         sys.exit(0)
@@ -278,7 +279,7 @@ if __name__ == "__main__":
         download_url = version['url']
         download_filename = version['filename']
         download_hash = version['hash']
-        download_drupal_package(download_url, download_filename, download_hash)
+        handle_drupal_download(download_url, download_filename, download_hash)
         if options.install:
             destination = options.install
             print("destination: {}".format(destination))
