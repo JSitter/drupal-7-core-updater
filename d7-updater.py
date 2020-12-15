@@ -26,11 +26,13 @@ SOFTWARE.
 '''
 import hashlib
 from optparse import OptionParser
+import math
 import os
 import os.path as path
 import shutil
 import sys
 import tarfile
+import time
 import urllib.request as req
 import xml.etree.ElementTree as ET
 
@@ -100,11 +102,14 @@ def unpack_gz_into(source, destination, replace=False, save_extract=False):
 
 def download_report_hook(count, chunk_size, total_size):
     global start_time
+    global progress
+    current_time = time.time()
     if count == 0:
-        start_time = time.time()
+        start_time = current_time
+        progress = int(chunk_size)
         return
-    duration = time.time() - start_time
-    progress = int(count * chunk_size)
+    duration = current_time - start_time
+    progress += int(chunk_size)
     speed = int(progress / (1024 * duration))
     if speed > 799:
         speed = speed / 1000
@@ -123,39 +128,52 @@ def download_report_hook(count, chunk_size, total_size):
     sys.stdout.write("\r{}{} {:.2f}% -- {:.2f}MB out of {:.2f}MB {:.0f}s          ".format(speed, speed_scale, percent, progress_mb, total_size/1000000, duration))
     sys.stdout.flush()
 
-def download_drupal_package(download_url, filename, source_hash=""):
-    check_dir(temp_dir)
-    destination = "{}/{}".format(temp_dir, filename)
+def download_drupal_version(download_url, destination):
     retry = True
-    user_affirmative = {"Y", 'y'}
-    # Allow user to retry if package fails to download
+    user_affirmative = {"Y", "y"}
     while retry:
         retry = False
-        if not path.exists(destination):
-            try:
-                print("Downloading {}".format(destination.split('/')[-1]))
-                req.urlretrieve(download_url, destination)
-            except:
-                user_retry = input("Failed to complete download. Retry? [Y/n] ")
-                if user_retry in user_affirmative:
-                    retry = True
-                else:
-                    sys.exit(1)
+        try:
+            print("Downloading {}".format(destination.split('/')[-1]))
+            req.urlretrieve(download_url, destination, download_report_hook)
+        except:
+            user_retry = input("Failed to complete download. Retry? [Y/n] ")
+            if user_retry in user_affirmative:
+                retry = True
             else:
-                sys.stdout.write("\rDownload Complete.                                \n")
-                sys.stdout.flush()
+                sys.exit(1)
         else:
-            print("Using local file.")
-    
-    f = open(destination, 'rb')
-    print("Verifying package authenticity.")
-    file_hash = hashlib.md5(f.read()).hexdigest()
-    f.close()
-    if file_hash != source_hash:
-        print("Warning! Hash Mismatch")
-        remove_file(destination)
+            sys.stdout.write("\rDownload Complete.                                \n")
+            sys.stdout.flush()
+
+def download_drupal_package(download_url, filename, source_hash=""):
+    check_dir(temp_dir)
+    user_affirmative = {"Y", "y"}
+    destination = "{}/{}".format(temp_dir, filename)
+    # Allow user to retry if package fails to download
+
+    if not path.exists(destination):
+        download_drupal_version(download_url, destination)
     else:
-        print("Package authenticity established")
+        print("Using local file.")
+    
+    retry = True
+    while retry:
+        retry = False
+        f = open(destination, 'rb')
+        print("Verifying package authenticity.")
+        file_hash = hashlib.md5(f.read()).hexdigest()
+        f.close()
+        if file_hash != source_hash:
+            user_retry_download = input("Warning! Hash Mismatch. Retry download? [Y/n] ")
+            remove_file(destination)
+            if user_retry_download in user_affirmative:
+                download_drupal_version(download_url, destination)
+                retry = True
+            else:
+                sys.exit(1)
+        else:
+            print("Package authenticity established")
 
 def get_xml_urllib(url):
     res = req.urlopen(url)
