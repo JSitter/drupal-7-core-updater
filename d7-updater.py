@@ -98,15 +98,54 @@ def unpack_gz_into(source, destination, replace=False, save_extract=False):
         shutil.rmtree(temp_source_dir)
     print("Done")
 
+def download_report_hook(count, chunk_size, total_size):
+    global start_time
+    if count == 0:
+        start_time = time.time()
+        return
+    duration = time.time() - start_time
+    progress = int(count * chunk_size)
+    speed = int(progress / (1024 * duration))
+    if speed > 799:
+        speed = speed / 1000
+        speed_scale = "MB/s"
+    else:
+        speed_scale = "KB/s"
+    percent = progress * 100 / total_size
+    progress_mb = progress / (1024 * 1024)
+    percent_scale = int(math.floor(percent)/4)
+    vis_downloaded = "=" * percent_scale
+    vis_remaining = "." * (25 - percent_scale)
+    CURSOR_UP = '\x1b[1A'
+    CLEAR_LINE = '\x1b[2k'
+
+    sys.stdout.write("{}{}\r{}>{}     \n".format(CURSOR_UP, CLEAR_LINE, vis_downloaded, vis_remaining))
+    sys.stdout.write("\r{}{} {:.2f}% -- {:.2f}MB out of {:.2f}MB {:.0f}s          ".format(speed, speed_scale, percent, progress_mb, total_size/1000000, duration))
+    sys.stdout.flush()
+
 def download_drupal_package(download_url, filename, source_hash=""):
     check_dir(temp_dir)
-    
     destination = "{}/{}".format(temp_dir, filename)
-    if not path.exists(destination):
-        print("Downloading {}".format(destination.split('/')[-1]))
-        req.urlretrieve(download_url, destination)
-    else:
-        print("Using local file.")
+    retry = True
+    user_affirmative = {"Y", 'y'}
+    # Allow user to retry if package fails to download
+    while retry:
+        retry = False
+        if not path.exists(destination):
+            try:
+                print("Downloading {}".format(destination.split('/')[-1]))
+                req.urlretrieve(download_url, destination)
+            except:
+                user_retry = input("Failed to complete download. Retry? [Y/n] ")
+                if user_retry in user_affirmative:
+                    retry = True
+                else:
+                    sys.exit(1)
+            else:
+                sys.stdout.write("\rDownload Complete.                                \n")
+                sys.stdout.flush()
+        else:
+            print("Using local file.")
     
     f = open(destination, 'rb')
     print("Verifying package authenticity.")
