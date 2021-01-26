@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 '''
-    Drupal 7 CLI Updater
+    Drupal 7 CLI Updater 1.0
     Copyright 2020 by Justin Sitter
 
     Permission is hereby granted, free of charge, to any person 

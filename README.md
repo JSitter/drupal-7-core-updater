@@ -1,4 +1,6 @@
 # Drupal 7 Updater
+
+## Version 1.0
 This script updates your current Drupal 7 installation with the newest release available.
 Latest available versions are available [here](https://www.drupal.org/project/drupal).
 
